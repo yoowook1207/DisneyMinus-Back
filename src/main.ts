@@ -12,7 +12,6 @@ async function bootstrap() {
     .setDescription('Backend for Disney Minus')
     .setVersion('2.0')
     .build();
-  
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('api', app, document);
 

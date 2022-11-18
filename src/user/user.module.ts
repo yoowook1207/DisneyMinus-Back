@@ -6,14 +6,16 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserEntity } from './entities/user.entity';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
-import { MongooseModule } from '@nestjs/mongoose';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
-  providers: [UserService],
+  providers: [UserService, JwtStrategy],
   controllers: [UserController],
   imports: [
     TypeOrmModule.forFeature([UserEntity]),
-    ConfigModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     PassportModule.register({ defaultStrategy: 'jwt' }), // jwt <----
     JwtModule.registerAsync({
       imports: [ConfigModule],

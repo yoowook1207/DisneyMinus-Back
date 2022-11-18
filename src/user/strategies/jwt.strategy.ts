@@ -13,23 +13,22 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    private readonly configService: ConfigService,
+    readonly configService: ConfigService,
   ) {
     super({
-      secretOrKey: configService.get('JWT_SECRET'),
+      secretOrKey: 'superSecretKey',
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
     });
   }
 
-  async validate(payload: JwtPayload): Promise<UserEntity> {
+  async validate({ email }: { email: string }): Promise<UserEntity> {
     // validate help to return the user;
-    const { email } = payload;
     const user: UserEntity = await this.userRepository.findOne({
       where: { email },
     });
-
     if (!user) {
+      console.log(user);
       throw new UnauthorizedException();
     }
 

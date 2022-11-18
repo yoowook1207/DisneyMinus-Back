@@ -6,5 +6,5 @@ export class SignInCredentialsDto {
   readonly email: string;
 
   @IsString()
-  readonly password: string;
+  readonly pwd: string;
 }

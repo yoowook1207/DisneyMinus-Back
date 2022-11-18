@@ -7,16 +7,17 @@ import { TmdbModule } from './tmdb/tmdb.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from './user/user.module';
 import { UserEntity } from './user/entities/user.entity';
-// import { configValidationSchema } from './config/config.schema';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'mongodb',
       host: 'localhost',
       port: 4231,
       username: 'root',
-      url: 'mongodb+srv://yoowook1207:Dbtjddnr9395@cluster0.6emsa.mongodb.net/?retryWrites=true&w=majority',
+      url: process.env.MONGOURL,
       database: 'disneyMinus',
       entities: [UserEntity],
       synchronize: true,

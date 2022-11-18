@@ -17,6 +17,9 @@ import { AddUserDto } from './dto/adduser.dto';
 import { UserRole } from './enums/user-role.enum';
 import { UpdateCredentialDto } from './dto/update-user.dto';
 import { SignInCredentialsDto } from './dto/signin.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { CheckEmailDto } from './dto/check-email.dto';
+import { DeleteUserDto } from './dto/delete-user.dto';
 
 @Injectable()
 export class UserService {
@@ -63,6 +66,8 @@ export class UserService {
         throw new InternalServerErrorException();
       } else if (error.code === '500') {
         throw error;
+      } else {
+        throw error;
       }
     }
   }
@@ -70,15 +75,34 @@ export class UserService {
   async signIn(
     signinCredentialsDto: SignInCredentialsDto,
   ): Promise<{ accessToken: string; role: string }> {
-    const { email, password } = signinCredentialsDto;
+    const { email, pwd } = signinCredentialsDto;
     const user = await this.userRepository.findOne({ where: { email } });
 
-    if (user && (await bcrypt.compare(password, user.pwd))) {
+    if (user && (await bcrypt.compare(pwd, user.pwd))) {
       const accessToken: string = this.createToken(user);
       return { accessToken, role: user.role };
     } else {
       throw new UnauthorizedException('Please check your login credentials');
     }
+  }
+
+  /* Refresh Token @Post */
+  async refreshToken(refreshTokenDto: RefreshTokenDto) {
+    const { email } = refreshTokenDto;
+    const user = await this.userRepository.findOne({ where: { email } });
+
+    if (user) {
+      const accessToken: string = this.createToken(user);
+      return { accessToken, role: user.role };
+    } else {
+      throw Error('Please complete your user info');
+    }
+  }
+
+  /* Check Uniq Email in DB */
+  async checkEmail({ email }: CheckEmailDto): Promise<boolean> {
+    const user = await this.userRepository.findOne({ where: { email } });
+    return user ? true : false;
   }
 
   async getUser(user: UserEntity): Promise<UserEntity> {
@@ -106,6 +130,37 @@ export class UserService {
     });
     const accessToken: string = this.createToken(updatedUser);
     return { accessToken, role: updatedUser.role };
+  }
+
+  /* Delete User @Post */
+  async deleteAnyUser(deleteUserDto: DeleteUserDto, user: UserEntity) {
+    console.log(user.role);
+    if (user.role !== UserRole.ADMIN)
+      new UnauthorizedException(
+        `You don't have the permission to delete a user.`,
+      );
+    const { email } = deleteUserDto;
+    const userfromdb = await this.userRepository.findOne({ where: { email } });
+    if (!userfromdb) {
+      throw new NotFoundException(`User "${user.email}" not found!`);
+    }
+    await this.userRepository.delete({ email });
+
+    return { email };
+  } /* testing */
+
+  /* Delete User @Delete  */
+  async deleteUserById(user: UserEntity, id: string) {
+    const userfromdb = await this.userRepository.findOne({ where: { id } });
+    if (!userfromdb) {
+      throw new NotFoundException(`User which ID is "${id}" not found!`);
+    }
+    if (user.role !== UserRole.ADMIN)
+      new UnauthorizedException(
+        `You don't have the permission to delete a user.`,
+      );
+    await this.userRepository.delete({ id });
+    return userfromdb;
   }
 
   private createToken(user: UserEntity) {
