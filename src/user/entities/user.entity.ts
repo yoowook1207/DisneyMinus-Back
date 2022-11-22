@@ -12,6 +12,9 @@ export class UserEntity {
   @ObjectIdColumn()
   id: string;
 
+  @Column()
+  username: string;
+
   @Column({ unique: true })
   email: string;
 

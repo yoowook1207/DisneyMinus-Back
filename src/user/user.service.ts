@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -37,12 +38,12 @@ export class UserService {
     addUserDto: AddUserDto,
   ): Promise<{ accessToken: string; role: UserRole }> {
     try {
-      const { pwd, email, tmdb_key, role } = addUserDto;
+      const { username, pwd, email, tmdb_key, role } = addUserDto;
 
       const salt = await bcrypt.genSalt();
       const hashedPassword = await bcrypt.hash(pwd, salt);
-
       const user = this.userRepository.create({
+        username,
         pwd: hashedPassword,
         email,
         tmdb_key,
@@ -77,7 +78,6 @@ export class UserService {
   ): Promise<{ accessToken: string; role: string }> {
     const { email, pwd } = signinCredentialsDto;
     const user = await this.userRepository.findOne({ where: { email } });
-
     if (user && (await bcrypt.compare(pwd, user.pwd))) {
       const accessToken: string = this.createToken(user);
       return { accessToken, role: user.role };
@@ -165,6 +165,7 @@ export class UserService {
 
   private createToken(user: UserEntity) {
     const payload: JwtPayload = {
+      username: user.username,
       id: user.id.toString(),
       email: user.email,
       tmdb_key: user.tmdb_key,

@@ -14,10 +14,11 @@ export class AddUserDto {
   @ApiProperty({
     description: 'show username in the header or nav after user signin',
   })
-  // @IsString()
-  // @MinLength(4)
-  // @MaxLength(10)
-  // readonly username: string;
+  @IsString()
+  @MinLength(4)
+  @MaxLength(10)
+  readonly username: string;
+
   @ApiProperty()
   @IsString()
   @IsEmail()
